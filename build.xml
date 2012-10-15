@@ -4,7 +4,8 @@
 	<property name="jar.src" value="src" />
   <property name="jar.src.main.java" value="src/main/java" />
   <property name="jar.src.main.scala" value="src/main/scala" />
-	<property name="jar.src.test" value="src/test/unit" />
+  <property name="jar.src.test.java" value="src/test/java" />
+  <property name="jar.build" value="build" />
 	<property name="jar.classes" value="build/classes" />
 	<property name="jar.classes.main" value="build/classes/main" />
 	<property name="jar.classes.test" value="build/classes/test/unit" />
@@ -47,22 +48,24 @@
 	<target name="precompile">
     <mkdir dir="${jar.classes.main}" />
     <ivy:retrieve file="build/ivy.xml" pattern="lib/[conf]/[type]/[artifact]-[revision].[ext]" />
+	  <taskdef classpathref="jar.classpath.main" resource="tasks.properties" />
+	  <taskdef resource="scala/tools/ant/antlib.xml">
+      <classpath>
+        <pathelement location="${jar.lib.build}/scala-compiler-2.9.2.jar" />
+        <pathelement location="${jar.lib}/scala-library-2.9.2.jar" />
+      </classpath>
+    </taskdef>
   </target>
 
-	<taskdef classpathref="jar.classpath.main" resource="tasks.properties" />
   
   <target name="precompiletest">
 		<mkdir dir="${jar.classes.test}" />
 		<mkdir dir="${reports.tests}/coverage" />
-		<mkdir dir="${reports.tests}/results/xml" />
+    <mkdir dir="${reports.tests}/results/xml" />
+    <mkdir dir="${reports.tests}/data" />
+
   </target>
 
-	<taskdef resource="scala/tools/ant/antlib.xml">
-    <classpath>
-      <pathelement location="${jar.lib.build}/scala-compiler-2.9.2.jar" />
-      <pathelement location="${jar.lib}/scala-library-2.9.2.jar" />
-    </classpath>
-  </taskdef>
 	<target name="compile" depends="precompile">
 		<!-- Compile and package -->
 
@@ -93,17 +96,11 @@
 	</target>
 
 	<target name="testcompile" depends="precompiletest">
-		<delete>
-			<fileset dir="${java.binary}">
-				<include name="${component.name}test.jar" />
-			</fileset>
-		</delete>
-
-		<javac srcdir="${java.source}/test/unit" destdir="${java.binary}/classes/test/unit" target="1.7" debug="on" includeantruntime="false">
+		<javac srcdir="${jar.src.test.java}" destdir="${jar.classes.test}" target="1.7" debug="on" includeantruntime="false">
 			<classpath refid="test.class.path" />
 			<compilerarg value="-Xlint:deprecation" />
 		</javac>
-		<jar destfile="${java.binary}/${component.name}test.jar" basedir="${java.binary}/classes/test/unit" update="true" />
+    <jar destfile="${jar.dest}/${component.name}-test.jar" basedir="${jar.classes.test}" update="true" />
 
 	</target>
 
@@ -112,9 +109,9 @@
 			<fileset dir=".">
 				<include name="cobertura.ser" />
 			</fileset>
-		</delete>
-		<cobertura-instrument todir="${java.binary}/instrumented-classes/main">
-			<fileset dir="build/classes/main">
+    </delete>
+		<cobertura-instrument todir="${jar.build}/instrumented-classes/main">
+      <fileset dir="${jar.classes.main}">
 				<include name="**/*.class" />
 				<exclude name="**/*Test*" />
 			</fileset>
@@ -128,7 +125,7 @@
 			<classpath refid="test.class.path" />
 			<formatter type="xml" />
 			<batchtest fork="yes" todir="${reports.tests}/results/xml" haltonfailure="false">
-				<fileset dir="${java.source}/test/unit">
+				<fileset dir="${jar.src.test.java}">
 					<include name="**/*Test*.java" />
 					<exclude name="**/AllTests.java" />
 				</fileset>
@@ -140,7 +137,7 @@
 			</fileset>
 			<report format="frames" todir="${reports.tests}/results" />
 		</junitreport>
-		<cobertura-report srcdir="${java.source}/main" destdir="${reports.tests}/coverage" />
+		<cobertura-report srcdir="${java.src.main.java}" destdir="${reports.tests}/coverage" />
 	</target>
 	<target name="release" depends="testrun">
 		<input message="Enter comment to log with this commit:-" addproperty="svn.comment" />

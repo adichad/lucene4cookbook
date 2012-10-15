@@ -2,3 +2,4 @@
 .project
 .classpath
 lib
+cobertura.ser
