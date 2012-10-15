@@ -1,9 +1,10 @@
 <ivy-module version="2.0">
   <info organisation="com.adichad" module="l4c"/>
 
-  <configurations defaultconfmapping="runtime->*;build->default" defaultconf="runtime">
+  <configurations defaultconfmapping="runtime->*;build->default;test->default" defaultconf="runtime">
     <conf name="build" visibility="public" />
     <conf name="runtime" visibility="public" />
+    <conf name="test" visibility="public" />
   </configurations>  
   
   <dependencies>
@@ -41,6 +42,8 @@
     <dependency org="net.sourceforge.cobertura" name="cobertura" rev="1.9.4.1" conf="build" />
     <dependency org="net.java.dev.javacc" name="javacc" rev="5.0" conf="build" />
     <dependency org="org.scala-lang" name="scala-compiler" rev="2.9.2" conf="build" />
+
+    <dependency org="org.scalatest" name="scalatest_2.9.0" rev="1.8" conf="test" />
   </dependencies>
 
 </ivy-module>

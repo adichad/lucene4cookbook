@@ -2,14 +2,15 @@
 <project name="lucene4cookbook" default="compile" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant" >
 	<property environment="env" />
 	<property name="jar.src" value="src" />
-	<property name="jar.src.main" value="src/main" />
+  <property name="jar.src.main.java" value="src/main/java" />
+  <property name="jar.src.main.scala" value="src/main/scala" />
 	<property name="jar.src.test" value="src/test/unit" />
 	<property name="jar.classes" value="build/classes" />
 	<property name="jar.classes.main" value="build/classes/main" />
 	<property name="jar.classes.test" value="build/classes/test/unit" />
-	<property name="jar.lib" value="WebContent/WEB-INF/lib" />
-	<property name="jar.lib.build" value="build/lib" />
-	<property name="jar.dest" value="WebContent/WEB-INF/lib" />
+  <property name="jar.lib" value="lib/runtime/jar" />
+  <property name="jar.lib.build" value="lib/build/jar" />
+	<property name="jar.dest" value="lib" />
 
 	<property name="war.dest" value="build" />
 	<property name="war.src" value="WebContent" />
@@ -20,9 +21,15 @@
 	<property file="build/build.properties" />
 	<property file="build/default.properties" />
 
-	<path id="src.path">
-		<fileset dir="${jar.src.main}">
+	<path id="src.path.java">
+		<fileset dir="${jar.src.main.java}">
 			<include name="**/*.java" />
+		</fileset>
+	</path>
+
+	<path id="src.path.scala">
+		<fileset dir="${jar.src.main.scala}">
+			<include name="**/*.scala" />
 		</fileset>
 	</path>
 
@@ -34,61 +41,36 @@
 		<fileset dir="${jar.lib.build}">
 			<include name="**/*.jar" />
 		</fileset>
-		<fileset dir="${env.CATALINA_HOME}">
-			<include name="**/*.jar" />
-		</fileset>
-
 	</path>
 
-	<!--path id="maven-ant-tasks.classpath" path="build/lib-nopom/maven-ant-tasks-2.1.3.jar" /-->
-	<!--typedef resource="org/apache/maven/artifact/ant/antlib.xml"
-           uri="antlib:org.apache.maven.artifact.ant"
-           classpathref="maven-ant-tasks.classpath" /-->
-	<!--typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpathref="jar.classpath.main" /-->
-	<!--taskdef classpathref="jar.classpath.main" resource="tasks.properties" /-->
-  <!--import file="build/dependencies.xml"/-->
 
 	<target name="precompile">
     <mkdir dir="${jar.classes.main}" />
-    <ivy:retrieve file="build/ivy.xml" pattern="WebContent/WEB-INF/lib/[conf]/[type]/[artifact]-[revision].[ext]" conf="build,runtime" />
-    <!--ivy:retrieve file="build/ivy-compile.xml" pattern="build/lib/[type]/[artifact]-[revision].[ext]"/-->
-		<!--javacc target="${jar.src.main}/com/adichad/lucense/expression/parse/ExpressionParser.jj" javacchome="build/lib" /-->
-		<!--copy todir="build/lib">
-      <fileset refid="build.dependency.fileset" />
-      <mapper type="flatten" />
-    </copy>
+    <ivy:retrieve file="build/ivy.xml" pattern="lib/[conf]/[type]/[artifact]-[revision].[ext]" />
+  </target>
 
-    <copy todir="WebContent/WEB-INF/lib">
-      <fileset refid="dependency.fileset" />
-      <mapper type="flatten" />
-    </copy-->
-	</target>
-	<target name="precompiletest">
+	<taskdef classpathref="jar.classpath.main" resource="tasks.properties" />
+  
+  <target name="precompiletest">
 		<mkdir dir="${jar.classes.test}" />
 		<mkdir dir="${reports.tests}/coverage" />
 		<mkdir dir="${reports.tests}/results/xml" />
-		<svn>
-			<update>
-				<fileset dir="${jar.src.test}">
-					<include name="**/*.java" />
-				</fileset>
-			</update>
-		</svn>
-	</target>
-	<!--taskdef resource="scala/tools/ant/antlib.xml">
+  </target>
+
+	<taskdef resource="scala/tools/ant/antlib.xml">
     <classpath>
-      <pathelement location="${jar.lib.build}/scala-compiler.jar" />
-      <pathelement location="${jar.lib}/scala-library.jar" />
+      <pathelement location="${jar.lib.build}/scala-compiler-2.9.2.jar" />
+      <pathelement location="${jar.lib}/scala-library-2.9.2.jar" />
     </classpath>
-  </taskdef-->
+  </taskdef>
 	<target name="compile" depends="precompile">
 		<!-- Compile and package -->
 
-		<!--scalac srcdir="${jar.src.main}" destdir="${jar.classes.main}">
+		<scalac srcdir="${jar.src.main.scala}" destdir="${jar.classes.main}">
       <classpath refid="jar.classpath.main" />
       <include name="**/*.scala"/>
-    </scalac-->
-		<javac srcdir="${jar.src.main}" destdir="${jar.classes.main}" target="1.7" debug="on" includeantruntime="false">
+    </scalac>
+		<javac srcdir="${jar.src.main.java}" destdir="${jar.classes.main}" target="1.7" debug="on" includeantruntime="false">
 			<classpath refid="jar.classpath.main" />
 			<include name="**/*.java" />
 			<compilerarg value="-Xlint:deprecation" />
@@ -162,16 +144,6 @@
 	</target>
 	<target name="release" depends="testrun">
 		<input message="Enter comment to log with this commit:-" addproperty="svn.comment" />
-		<svn>
-			<add force="true">
-				<fileset dir="${reports.tests}">
-					<include name="**/TEST*.*" />
-					<include name="coverage" />
-					<include name="coverage/**/*" />
-				</fileset>
-			</add>
-			<commit dir="${java.build}" message="${svn.comment}" />
-		</svn>
 	</target>
 
 </project>
