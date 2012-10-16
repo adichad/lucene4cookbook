@@ -79,7 +79,7 @@
 			<compilerarg value="-Xlint:deprecation" />
 		</javac>
 
-		<jar destfile="${jar.dest}/${component.name}.jar" basedir="${jar.classes.main}" update="true" />
+    <jar destfile="${jar.dest}/${component.name}.jar" basedir="${jar.classes.main}" update="true" manifest="${jar.build}/MANIFEST.MF" />
 		<!--war destfile="${war.dest}/${component.name}.war" basedir="${war.src}" webxml="${war.src}/WEB-INF/web.xml" update="true" /-->
 	</target>
 
